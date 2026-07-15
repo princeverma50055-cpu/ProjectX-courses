@@ -1,49 +1,36 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 
-export default function LearnPage({ params }) {
-  const { courseId } = params;
-  const [course, setCourse] = useState(null);
-  const [currentChapter, setCurrentChapter] = useState(0);
-
-  useEffect(() => {
-    // MongoDB se specific course aur uske chapters fetch karna
-    fetch(`/api/courses/${courseId}`)
-      .then(res => res.json())
-      .then(data => setCourse(data));
-  }, [courseId]);
-
-  const markComplete = async () => {
-    // API call to update progress in MongoDB
-    await fetch('/api/progress/update', {
-      method: 'POST',
-      body: JSON.stringify({ courseId, chapterIndex: currentChapter }),
-      headers: { 'Content-Type': 'application/json' }
-    });
-    
-    if (currentChapter < course.chapters.length - 1) {
-      setCurrentChapter(currentChapter + 1);
-    } else {
-      alert("Course completed! Check dashboard for your certificate.");
-    }
-  };
-
-  if (!course) return <p>Loading course content...</p>;
+export default function CourseViewer() {
+  const [progress, setProgress] = useState(40); // 40% demo
 
   return (
-    <main style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1>{course.title}</h1>
-      <div style={{ background: '#1e293b', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
-        <h2>{course.chapters[currentChapter].title}</h2>
-        <p style={{ lineHeight: '1.8' }}>{course.chapters[currentChapter].content}</p>
-      </div>
-      
-      <button 
-        onClick={markComplete}
-        style={{ marginTop: '20px', padding: '15px 30px', backgroundColor: '#0066ff', border: 'none', borderRadius: '5px', color: '#fff', cursor: 'pointer' }}
-      >
-        {currentChapter === course.chapters.length - 1 ? "Finish Course" : "Mark as Complete & Next"}
-      </button>
-    </main>
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <aside className="w-64 border-r border-slate-800 p-6">
+        <h2 className="text-sm uppercase text-slate-500 font-bold mb-4">Course Progress</h2>
+        <div className="h-2 bg-slate-800 rounded-full mb-6 overflow-hidden">
+          <motion.div className="h-full bg-blue-500" initial={{ width: 0 }} animate={{ width: `${progress}%` }} />
+        </div>
+        <p className="text-sm">{progress}% Complete</p>
+      </aside>
+
+      {/* Content Area */}
+      <section className="flex-1 p-12">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+          <h1 className="text-4xl font-bold mb-6">Chapter: Understanding AI</h1>
+          <div className="prose prose-invert max-w-none text-slate-300 leading-8">
+            <p>Yahan aapka deep text course content aayega. Coursera ki tarah hum isse blocks mein divide karenge...</p>
+          </div>
+          <button 
+            onClick={() => setProgress(prev => prev + 20)}
+            className="mt-10 bg-white text-black px-8 py-3 rounded-full font-bold hover:bg-slate-200 transition"
+          >
+            Mark as Complete
+          </button>
+        </motion.div>
+      </section>
+    </div>
   );
 }
